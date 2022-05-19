@@ -1,0 +1,11 @@
+---
+ - hosts: all
+   gather_facts: yes
+   become: true
+   tasks:
+     - name: install apache2
+       package:
+        state: latest
+        name:
+        - vim
+        - apache2
