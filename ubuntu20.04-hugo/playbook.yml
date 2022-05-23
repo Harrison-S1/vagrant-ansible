@@ -1,0 +1,48 @@
+---
+ - hosts: all
+   gather_facts: yes
+   become: true
+   tasks:
+     - name: install main packages
+       package:
+        state: latest
+        name:
+        - vim
+        - apache2
+        - git
+        - wget
+        
+     - name: enable apache2
+       ansible.builtin.service:
+         name: apache2
+         enabled: yes  
+
+     - name: start apache2
+       ansible.builtin.service:
+         name: apache2
+         state: started 
+
+     - name: download lastest version of hugo
+       get_url:
+         url: https://github.com/gohugoio/hugo/releases/download/v0.99.1/hugo_0.99.1_Linux-64bit.deb
+         dest: /opt/
+         mode: '0664'
+
+     - name: install hugo
+       shell: dpkg -i /opt/hugo_0.99.1_Linux-64bit.deb
+
+     - name: get hugo version
+       shell: hugo version
+       register: command_output
+     
+     - debug:
+              var: command_output.stdout_lines   
+     
+     - name: craete site
+       shell: hugo new site dev
+
+     - name: Produce site
+       shell: cd dev && git init && git submodule add https://github.com/theNewDynamic/gohugo-theme-ananke.git themes/ananke && echo theme = \"ananke\" >> config.toml
+
+     - name: build site
+       shell: cd /home/vagrant/dev && hugo new posts/my-first-post.md && hugo -D && cp -r /home/vagrant/dev/public/* /var/www/html/
